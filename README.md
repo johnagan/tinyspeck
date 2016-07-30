@@ -18,8 +18,7 @@ A lightweight Slack API adapter for node.js that handles requests and responses.
 npm i tinyspeck --save
 ```
 
-## Requests
-### Calling API Methods
+## Calling API Methods
 ```javascript
 let slack = require('tinyspeck');
 
@@ -42,7 +41,7 @@ slack.send('chat.postMessage', message).then(response => {
 slack.send('https://hooks.slack.com/services/T0000/B000/XXXX', message);
 ```
 
-### Defaults
+## Defaults
 ```javascript
 slack.defaults = {
   unfurl_links: true,
@@ -61,7 +60,7 @@ let message = {
 slack.send('chat.postMessage', message);
 ```
 
-### Creating an Instance
+## Creating an Instance
 ```javascript
 // create an instance with defaults
 let instance = slack.instance({
@@ -81,7 +80,7 @@ let message = {
 instance.send('chat.postMessage', message);
 ```
 
-### Writing Messages
+## Writing Messages
 ```javascript
 let instance = slack.instance({
   unfurl_links: true,
