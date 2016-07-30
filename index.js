@@ -25,10 +25,10 @@ class TinySpeck extends EventEmitter {
 
 
   /**
-   * Create an instance of the Slack adapter
+   * Create an instance of the TinySpeck adapter
    *
    * @param {Object} defaults - The default config for the instance
-   * @return {Slack} A new instance of the Slack adapter
+   * @return {TinySpeck} A new instance of the TinySpeck adapter
    */
   instance(defaults) {
     return new this.constructor(defaults);
@@ -116,7 +116,7 @@ class TinySpeck extends EventEmitter {
    * Event handler for incoming messages
    *
    * @param {mixed} names - Any number of event names to listen to. The last will be the callback
-   * @return {Slack} The Slack adapter
+   * @return {TinySpeck} The TinySpeck adapter
    */
   on(...names) {
     let callback = names.pop(); // support multiple events per callback
