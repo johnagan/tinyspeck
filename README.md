@@ -1,6 +1,6 @@
 # TinySpeck
 
-A lightweight Slack API adapter for node.js that handles requests and responses. 
+A lightweight adapter for node.js to interact with Slack's Web and RTM APIs.
 
 ## Guide
 * [Installation](#install)
