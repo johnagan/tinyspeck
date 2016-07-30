@@ -11,7 +11,7 @@ A lightweight Slack API adapter for node.js that handles requests and responses.
 * [Events](#events)
 * [RTM](#rtm)
 * [WebServer](#webserver)
-
+* [Digester](#digester)
 
 ## Install
 ```
@@ -102,13 +102,12 @@ instance.write({
 ```
 
 ## Events
-### Usage
-```javascript
-slack.on('event name', [... 'event name',] callback)
-```
+Event handlers that are triggered when messages are recived from Slack.
 
-### Example
 ```javascript
+// usage
+slack.on('event name', [... 'event name',] callback)
+
 // handle the "/test" slash commands
 slack.on('/test', message => { });
 
@@ -126,15 +125,11 @@ slack.on('*', message => { });
 ```
 
 ## RTM
-
-### Usage
+Creates a connections to Slack's RTM API.
 ```javascript
 // options to pass to rtm.start
 slack.rtm({options}) // returns a promise
-```
 
-### Example
-```javascript
 // basic
 slack.rtm({ token: 'xoxb-12345678900-ABCD1234567890' }).then(ws => {    
   // connected are the websock is returned
@@ -148,22 +143,23 @@ slack.rtm()
 ```
 
 ## WebServer
-### Usage
-```javascript
-// http server
-slack.listen(port, 'path') // return http server
+A simple http server to recieve JSON posts from Slack's WebHooks or Events.
 
-// digester
-slack.digest('JSON string' or {message}) // triggers the events
+```javascript
+// usage
+slack.listen(port, 'path - defaults to root');
+
+// example
+slack.listen(3000, '/slack/incoming');
 ```
 
+## Digester
+The digester reads a Slack message as a QueryString, JSON string, or JSON object and then fires events based on the messages contents. This is handled automatically by the WebServer and RTM.
 
-### Example
 ```javascript
-// WebServer for WebHooks
-slack.listen(3000, '/slack/incoming');
+slack.digest('JSON string' or {message}) // triggers the events
 
-// AWS Lambda handler
+// AWS Lambda Example
 exports.handler = (event, context, callback) => {
   slack.digest(event.body); // parses the body  
 }
