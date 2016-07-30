@@ -1,0 +1,33 @@
+{
+  "name": "tinyspeck",
+  "description": "A tiny connector to interact with Slack's Web and RTM APIs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "John Agan <jagan@slack-corp.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "env $(cat .testenv | xargs) mocha"
+  },
+  "keywords": [
+    "tinyspeck",
+    "slack",
+    "api",
+    "client",
+    "node",
+    "bot"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/johnagan/tinyspeck.git"
+  },
+  "bugs": {
+    "url": "https://github.com/johnagan/tinyspeck/issues"
+  },
+  "dependencies": {
+    "ws": "^1.1.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3"
+  }
+}
