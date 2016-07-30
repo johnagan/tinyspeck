@@ -124,7 +124,7 @@ slack.on('*', message => { });
 ```
 
 ## RTM
-Creates a connections to Slack's RTM API.
+Creates a connection to Slack's RTM API.
 ```javascript
 // options to pass to rtm.start
 slack.rtm({options}) // returns a promise
