@@ -1,6 +1,6 @@
 {
   "name": "tinyspeck",
-  "description": "A tiny connector to interact with Slack's Web and RTM APIs",
+  "description": "A lightweight bot adapter for node.js to interact with Slack's Web and RTM APIs",
   "version": "1.0.0",
   "main": "index.js",
   "author": "John Agan <jagan@slack-corp.com>",
