@@ -202,9 +202,8 @@ class TinySpeck extends EventEmitter {
           try { resolve(JSON.parse(data)) }
           catch(err) { reject(data) }
         });
-
       }).on('error', reject);
-    
+   
       req.write(body);
       req.end();
     });
