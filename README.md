@@ -77,6 +77,26 @@ let message = {
 instance.send('chat.postMessage', message);
 ```
 
+### Writing Messages
+```javascript
+let instance = slack.instance({
+  unfurl_links: true,
+  channel: 'C1QD223DS1',
+  token: 'xoxb-12345678900-ABCD1234567890'  
+});
+
+// helper for {text: 'hello'} and posts to the best option of Web or RTM
+instance.write("hello!");
+
+// complex messages are allowed
+instance.write({
+  text: "I am a test message http://slack.com",
+  attachments: [{
+    text: "And here's an attachment!"
+  }]
+});
+```
+
 ## Events
 ### Usage
 ```javascript
