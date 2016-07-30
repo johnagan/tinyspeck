@@ -2,17 +2,21 @@
 
 A lightweight Slack API adapter for node.js that handles requests and responses. 
 
+## Guide
+* [Installation](#install)
+* [API Requests](#calling-api-methods)
+* [Defaults](#defaults)
+* [Instances](#creating-an-instance)
+* [Writing Messages](#writing-messages)
+* [Events](#events)
+* [RTM](#rtm)
+* [WebServer](#webserver)
+
 
 ## Install
 ```
 npm i tinyspeck --save
 ```
-
-## Features
-* [Requests](#requests)
-* [Events](#events)
-* [RTM](#rtm)
-* [WebServer](#webserver)
 
 ## Requests
 ### Calling API Methods
