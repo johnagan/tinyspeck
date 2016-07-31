@@ -2,7 +2,7 @@
 
 A lightweight adapter for node.js to interact with Slack's Web and RTM APIs.
 
-## Guide
+## Usage
 * [Installation](#install)
 * [API Requests](#calling-api-methods)
 * [Instances](#creating-an-instance)

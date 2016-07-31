@@ -4,7 +4,8 @@ const {TOKEN, CHANNEL} = process.env,
 
 
 describe('RTM', () => {
-  let test = ts.instance({ token: TOKEN, text: "TESTING", channel: CHANNEL  });
+  let text = "TESTING";
+  let test = ts.instance({ token: TOKEN, text: text, channel: CHANNEL  });
 
   describe('rtm.start', () => {
     it('should create an RTM connection', done => {
