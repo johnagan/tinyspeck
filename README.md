@@ -5,7 +5,6 @@ A lightweight adapter for node.js to interact with Slack's Web and RTM APIs.
 ## Guide
 * [Installation](#install)
 * [API Requests](#calling-api-methods)
-* [Defaults](#defaults)
 * [Instances](#creating-an-instance)
 * [Writing Messages](#writing-messages)
 * [Events](#events)
@@ -41,24 +40,6 @@ slack.send('chat.postMessage', message).then(response => {
 slack.send('https://hooks.slack.com/services/T0000/B000/XXXX', message);
 ```
 
-## Defaults
-```javascript
-slack.defaults = {
-  unfurl_links: true,
-  channel: 'C1QD223DS1',
-  token: 'xoxb-12345678900-ABCD1234567890'  
-};
-
-let message = {
-  text: "I am a test message http://slack.com",
-  attachments: [{
-    text: "And here's an attachment!"
-  }]
-};
-
-// send message to any Slack endpoint
-slack.send('chat.postMessage', message);
-```
 
 ## Creating an Instance
 ```javascript
@@ -135,10 +116,11 @@ slack.rtm({ token: 'xoxb-12345678900-ABCD1234567890' }).then(ws => {
 });
 
 // with defaults
-slack.defaults = {
+let instance = slack.instance({
   token: 'xoxb-12345678900-ABCD1234567890'  
-}
-slack.rtm()
+});
+
+instance.rtm();
 ```
 
 ## WebServer
