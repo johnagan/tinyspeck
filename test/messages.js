@@ -35,5 +35,4 @@ describe('RTM', () => {
       test.write();
     });
   });
-
 });

@@ -148,22 +148,22 @@ class TinySpeck extends EventEmitter {
    * WebServer to listen for WebHooks
    *
    * @param {int} port - The port number to listen on
-   * @param {string} path - The url path to respond to
+   * @param {string} token - Optionally prodide a token to verify
    * @return {listener} The HTTP listener
    */
-  listen(port, path) {
-    path = path || '/'; // default to root
-    
+  listen(port, token) {    
     return http.createServer((req, res) => {
-      if (req.url == path && req.method === 'POST') {
-        let data = '';
-        req.on('data', chunk => data += chunk);
-        req.on('end', () => this.digest(data));
-      }
+      let data = '';
+      req.on('data', chunk => data += chunk);
+      req.on('end', () => {
+        let message = qs.parse(data);
+        this.emit(req.url, message); // notify upon request
+        if ((!token || token === message.token) && data !== '') this.digest(message);
+        res.end();
+      });
 
-      res.end('');
     }).listen(port, 'localhost', () => {
-      console.log(`listening for events on http://localhost:${port + path}`);
+      console.log(`listening for events on http://localhost:${port}`);
     });
   }
 

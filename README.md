@@ -131,10 +131,10 @@ A simple http server to recieve JSON posts from Slack's WebHooks or Events.
 
 ```javascript
 // usage
-slack.listen(port, 'path - defaults to root');
+slack.listen(port, 'validation token (optional)');
 
 // example
-slack.listen(3000, '/slack/incoming');
+slack.listen(3000, 'gIkuvaNzQIHg97ATvDxqgjtO');
 ```
 
 ## Digester
