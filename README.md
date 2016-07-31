@@ -18,6 +18,7 @@ npm i tinyspeck --save
 ```
 
 ## Calling API Methods
+Access any of Slack's [API Methods](https://api.slack.com/methods) by passing in the method name.
 ```javascript
 let slack = require('tinyspeck');
 
