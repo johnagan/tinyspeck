@@ -42,6 +42,8 @@ slack.send('https://hooks.slack.com/services/T0000/B000/XXXX', message);
 
 
 ## Creating an Instance
+Use to create a new instance of TinySpeck with a custom defaults
+
 ```javascript
 // create an instance with defaults
 let instance = slack.instance({
