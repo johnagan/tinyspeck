@@ -29,8 +29,8 @@ describe('Web API', () => {
 
     it('should connect with defaults', done => {
       let text = '456';
-      ts.defaults = { test: text };
-      ts.send('api.test').then(data => {
+      let instance = ts.instance({ test: text });
+      instance.send('api.test').then(data => {
         assert.isTrue(data.ok, data);
         assert.isNotNull(data.args, data);
         assert.equal(data.args.test, text);
