@@ -73,10 +73,19 @@ let instance = slack.instance({
 });
 
 // helper for {text: 'hello'} and posts to the best option of Web or RTM
-instance.write("hello!");
+instance.chat("hello!");
 
 // complex messages are allowed
-instance.write({
+instance.chat({
+  text: "I am a test message http://slack.com",
+  attachments: [{
+    text: "And here's an attachment!"
+  }]
+});
+
+// including the ts will update the message
+instance.chat({
+  ts: "1234",
   text: "I am a test message http://slack.com",
   attachments: [{
     text: "And here's an attachment!"

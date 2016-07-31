@@ -36,15 +36,26 @@ class TinySpeck extends EventEmitter {
 
 
   /**
-   * Write a message using the best connector
+   * Create or update a message using the best connector
    *
    * @param {string|object} message - A text message or object to send
    * @return {Promise} A promise with the API result
    */
-  write(message) {
+  chat(message) {
+    // support for text-only inputs
     if (typeof message === 'string') message = { text: message };
-    let payload = Object.assign({}, message, { type: 'message' });
-    return this.send('chat.postMessage', payload);
+
+    // use the RTM when possible
+    if (this.ws && !payload.attachments && !payload.ts) {
+      return new Promise((resolve, reject) => {
+        let args = Object.assign({}, this.defaults, { type: 'message' }, message);
+        this.ws.send(JSON.stringify(args), err => err ? reject(err) : resolve(args));
+      });
+    } else {
+      // call update if an id is present
+      let method = payload.ts ? 'update' : 'postMessage';
+      return this.send(`chat.${method}`, payload);      
+    }
   }
 
 
@@ -58,17 +69,11 @@ class TinySpeck extends EventEmitter {
   send(endPoint, payload) {    
     // use defaults when available
     let args = Object.assign({}, this.defaults, payload);
-
-    if (this.ws && args.type === 'message' && !args.attachments) {
-      return new Promise((resolve, reject) => {
-        this.ws.send(JSON.stringify(args), err => err ? reject(err) : resolve(this.ws));
-      });
-    } else {
-      // encode attachments for form data
-      if (args.attachments) args.attachments = JSON.stringify(args.attachments);        
-      
-      return this.post(endPoint, args);
-    }
+    
+    // encode attachments for form data
+    if (args.attachments) args.attachments = JSON.stringify(args.attachments);        
+    
+    return this.post(endPoint, args);
   }
 
 
