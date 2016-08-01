@@ -86,7 +86,9 @@ class TinySpeck extends EventEmitter {
    */
   digest(message) {
     let {event_ts, event, command, type, trigger_word, payload} = this.parse(message);
-    this.emit('*', message);  // wildcard support
+    
+    // wildcard
+    this.emit('*', message);
 
     // notify incoming message by type
     if (type) this.emit(type, message);
