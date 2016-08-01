@@ -53,7 +53,7 @@ class TinySpeck extends EventEmitter {
     let message = Object.assign({}, this.defaults, ...args);  
 
     // call update if ts included
-    if (message.ts) endPoint = 'chat.update';
+    if (message.ts && endPoint === 'chat.postMessage') endPoint = 'chat.update';
 
     return this.post(endPoint, message);
   }
