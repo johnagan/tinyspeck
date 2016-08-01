@@ -46,15 +46,15 @@ class TinySpeck extends EventEmitter {
     if (typeof message === 'string') message = { text: message };
 
     // use the RTM when possible
-    if (this.ws && !payload.attachments && !payload.ts) {
+    if (this.ws && !message.attachments && !message.ts) {
       return new Promise((resolve, reject) => {
         let args = Object.assign({}, this.defaults, { type: 'message' }, message);
         this.ws.send(JSON.stringify(args), err => err ? reject(err) : resolve(args));
       });
     } else {
       // call update if an id is present
-      let method = payload.ts ? 'update' : 'postMessage';
-      return this.send(`chat.${method}`, payload);      
+      let method = message.ts ? 'update' : 'postMessage';
+      return this.send(`chat.${method}`, message);      
     }
   }
 
