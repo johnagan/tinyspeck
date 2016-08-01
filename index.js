@@ -177,7 +177,7 @@ class TinySpeck extends EventEmitter {
         // new subscription challenge
         if (message.challenge) return res.end(message.challenge);
         
-        // digest the incoing message
+        // digest the incoming message
         if (!token || token === message.token) this.digest(message);
         
         // close response
