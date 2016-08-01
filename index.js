@@ -130,9 +130,9 @@ class TinySpeck extends EventEmitter {
    * @return {WebSocket} A promise containing the WebSocket
    */
   rtm(options) {
-    return this.send('rtm.start', options).then(data => {
-      this.cache = data.self;
-      let ws = new WebSocket(data.url);
+    return this.send('rtm.start', options).then(res => {
+      this.cache = res.data.self;
+      let ws = new WebSocket(res.data.url);
       ws.on('message', this.digest.bind(this));
       ws.on('close', () => this.ws = null);
       ws.on('open', () => this.ws = ws);
