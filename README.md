@@ -65,6 +65,8 @@ instance.send('chat.postMessage', message);
 ```
 
 ## Writing Messages
+The Send method defaults to `chat.postMessage`. If your messages includes an `ts` property, it will call `chat.update` instead.
+
 ```javascript
 let instance = slack.instance({
   unfurl_links: true,
@@ -72,11 +74,8 @@ let instance = slack.instance({
   token: 'xoxb-12345678900-ABCD1234567890'  
 });
 
-// helper for {text: 'hello'} and posts to the best option of Web or RTM
-instance.chat("hello!");
-
 // complex messages are allowed
-instance.chat({
+instance.send({
   text: "I am a test message http://slack.com",
   attachments: [{
     text: "And here's an attachment!"
@@ -84,12 +83,16 @@ instance.chat({
 });
 
 // including the ts will update the message
-instance.chat({
+let orginalMsg = {
   ts: "1234",
   text: "I am a test message http://slack.com",
   attachments: [{
     text: "And here's an attachment!"
   }]
+};
+
+instance.send(orginalMsg, { 
+  text: 'My new text!'
 });
 ```
 

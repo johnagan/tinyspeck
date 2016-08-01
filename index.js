@@ -1,8 +1,7 @@
 "use strict";
 
-const url = require('url'),
-      http = require('http'),
-      https = require('https'),
+const http = require('http'),
+      axios = require('axios'),
       WebSocket = require('ws'),
       qs = require('querystring'),
       EventEmitter = require('events');
@@ -17,6 +16,8 @@ class TinySpeck extends EventEmitter {
   constructor(defaults) {
     super();
     this.cache = {};
+
+    // message defaults
     this.defaults = defaults || {};
     
     // loggers
@@ -36,44 +37,25 @@ class TinySpeck extends EventEmitter {
 
 
   /**
-   * Create or update a message using the best connector
-   *
-   * @param {string|object} message - A text message or object to send
-   * @return {Promise} A promise with the API result
-   */
-  chat(message) {
-    // support for text-only inputs
-    if (typeof message === 'string') message = { text: message };
-
-    // use the RTM when possible
-    if (this.ws && !message.attachments && !message.ts) {
-      return new Promise((resolve, reject) => {
-        let args = Object.assign({}, this.defaults, { type: 'message' }, message);
-        this.ws.send(JSON.stringify(args), err => err ? reject(err) : resolve(args));
-      });
-    } else {
-      // call update if an id is present
-      let method = message.ts ? 'update' : 'postMessage';
-      return this.send(`chat.${method}`, message);      
-    }
-  }
-
-
-  /**
    * Send data to Slack's API
    *
-   * @param {string} endPoint - The method name or url
-   * @param {object} payload - The JSON payload to send
+   * @param {string} endPoint - The method name or url (optional - defaults to chat.postMessage)
+   * @param {object} args - The JSON payload to send
    * @return {Promise} A promise with the API result
    */
-  send(endPoint, payload) {    
+  send(...args) {
+    let endPoint = 'chat.postMessage'; // default action is post message
+
+    // if an endpoint was passed in, use it
+    if (typeof args[0] === 'string') endPoint = args.shift();
+
     // use defaults when available
-    let args = Object.assign({}, this.defaults, payload);
-    
-    // encode attachments for form data
-    if (args.attachments) args.attachments = JSON.stringify(args.attachments);        
-    
-    return this.post(endPoint, args);
+    let message = Object.assign({}, this.defaults, ...args);  
+
+    // call update if ts included
+    if (message.ts) endPoint = 'chat.update';
+
+    return this.post(endPoint, message);
   }
 
 
@@ -198,36 +180,22 @@ class TinySpeck extends EventEmitter {
    * @return {Promise} A promise with the api result
    */
   post(endPoint, payload) {
-    // convert relative to absolute
-    if (!/^http/i.test(endPoint)) endPoint = `https://slack.com/api/${endPoint}`;
+    if (!/^http/i.test(endPoint)) {
+      
+      // serialize JSON params
+      if (payload.attachments)
+        payload.attachments = JSON.stringify(payload.attachments);
 
-    let body = qs.stringify(payload),
-        {host, path} = url.parse(endPoint);
-    
-    let options = {
-      host: host,
-      path: path,
-      method: 'POST',
-      headers: {
-        'Content-Length': Buffer.byteLength(body),
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    };
+      // serialize JSON for POST
+      payload = qs.stringify(payload);
+    }
 
-    return new Promise((resolve, reject) => {
-      let data = '';
-      let req = https.request(options, res => {
-        res.setEncoding('utf8');
-        res.on('data', chunk => data += chunk);
-        res.on('error', reject);
-        res.on('end', () => {
-          try { resolve(JSON.parse(data)) }
-          catch(err) { reject(data) }
-        });
-      }).on('error', reject);
-   
-      req.write(body);
-      req.end();
+    return axios({ 
+      url: endPoint,
+      data: payload ,
+      method: 'post',
+      baseURL: 'https://slack.com/api/',
+      headers: { 'user-agent': 'TinySpeck' }
     });
   }
 }
