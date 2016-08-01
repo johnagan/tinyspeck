@@ -78,28 +78,33 @@ class TinySpeck extends EventEmitter {
 
 
   /**
+   * Parse a Slack message
+   *
+   * @param {object|string} message - The incoming Slack message
+   * @return {Message} The parsed message
+   */
+  parse(message) {
+    if (typeof message === 'string') {
+      try { message = JSON.parse(message); }      // JSON string
+      catch(e) { message = qs.parse(message); }   // QueryString
+    }
+    
+    // message button payloads are JSON strings
+    if (message.payload) message.payload = JSON.parse(message.payload);
+    
+    return message;
+  }
+
+
+  /**
    * Digest a Slack message and process events
    *
    * @param {object|string} message - The incoming Slack message
    * @return {Message} The parsed message
    */
   digest(message) {
-    if (typeof message === 'string') {
-      try {
-        message = JSON.parse(message); // JSON string
-      } catch(err) {
-        message = qs.parse(message); // QueryString
-      }
-    }
-
-    let {event_ts, event, command, type, trigger_word, payload} = message;
+    let {event_ts, event, command, type, trigger_word, payload} = this.parse(message);
     this.emit('*', message);  // wildcard support
-
-    // notify message button triggered by callback_id
-    if (payload) {
-      message.payload = JSON.parse(payload);
-      this.emit(payload.callback_id, message);
-    }
 
     // notify incoming message by type
     if (type) this.emit(type, message);
@@ -112,6 +117,9 @@ class TinySpeck extends EventEmitter {
 
     // notify webhook triggered by trigger word
     if (trigger_word) this.emit(trigger_word, message);
+
+    // notify message button triggered by callback_id
+    if (payload) this.emit(payload.callback_id, message);
 
     return message;
   }
@@ -161,9 +169,18 @@ class TinySpeck extends EventEmitter {
       let data = '';
       req.on('data', chunk => data += chunk);
       req.on('end', () => {
-        let message = qs.parse(data);
-        this.emit(req.url, message); // notify upon request
-        if ((!token || token === message.token) && data !== '') this.digest(message);
+        let message = this.parse(data);
+
+        // notify upon request
+        this.emit(req.url, message); 
+
+        // new subscription challenge
+        if (message.challenge) return res.end(message.challenge);
+        
+        // digest the incoing message
+        if (!token || token === message.token) this.digest(message);
+        
+        // close response
         res.end();
       });
 
