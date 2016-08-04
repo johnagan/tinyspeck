@@ -32,7 +32,8 @@ class TinySpeck extends EventEmitter {
    * @return {TinySpeck} A new instance of the TinySpeck adapter
    */
   instance(defaults) {
-    return new this.constructor(defaults);
+    let options = Object.assign({}, this.defaults, defaults);
+    return new this.constructor(options);
   }
 
 
