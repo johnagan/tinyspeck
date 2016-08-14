@@ -33,7 +33,7 @@ let message = {
 }
 
 // send message to any Slack endpoint
-slack.send('chat.postMessage', message).then(response => {
+slack.send('chat.postMessage', message).then(data => {
   // Success!
 });
 

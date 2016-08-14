@@ -1,6 +1,7 @@
 "use strict";
 
-const http = require('http'),
+const url = require('url'),
+      http = require('http'),
       axios = require('axios'),
       WebSocket = require('ws'),
       qs = require('querystring'),
@@ -86,7 +87,8 @@ class TinySpeck extends EventEmitter {
    * @return {Message} The parsed message
    */
   digest(message) {
-    let {event_ts, event, command, type, trigger_word, payload} = this.parse(message);
+    message = this.parse(message);
+    let {event_ts, event, command, type, trigger_word, payload} = message;
     
     // wildcard
     this.emit('*', message);
@@ -132,13 +134,35 @@ class TinySpeck extends EventEmitter {
    */
   rtm(options) {
     return this.send('rtm.start', options).then(res => {
-      this.cache = res.data.self;
-      let ws = new WebSocket(res.data.url);
+      this.cache = res.self;
+      let ws = new WebSocket(res.url);
       ws.on('message', this.digest.bind(this));
       ws.on('close', () => this.ws = null);
       ws.on('open', () => this.ws = ws);
       return Promise.resolve(ws);
     });
+  }
+
+
+ /**
+   * OAuth Authorization Url
+   *
+   * @param {object} params - The OAuth querystring params
+   * @return {string} The authorization url
+   */
+  authorizeUrl(params) {
+    return "https://slack.com/oauth/authorize?" + qs.stringify(params);
+  }
+
+
+ /**
+   * OAuth Token
+   *
+   * @param {object} params - The authorization params
+   * @return {promise} A Promise containing the authorization results
+   */
+  token(params) {
+    return this.post('https://slack.com/api/oauth.access', params, true)
   }
 
 
@@ -155,20 +179,25 @@ class TinySpeck extends EventEmitter {
       req.on('data', chunk => data += chunk);
       req.on('end', () => {
         let message = this.parse(data);
-
-        // notify upon request
-        this.emit(req.url, message); 
+        
+        // update the request
+        req.body = message;
+        req.url = url.parse(req.url);
+        req.params = qs.parse(req.url.query);
 
         // new subscription challenge
         if (message.challenge) return res.end(message.challenge);
         
         // digest the incoming message
         if (!token || token === message.token) this.digest(message);
-        
-        // close response
-        res.end();
-      });
 
+        // notify route handler if available, otherwise end
+        if (this.eventNames().indexOf(req.url.pathname) !== -1) {          
+          this.emit(req.url.pathname, req, res);   
+        } else {
+          res.end();
+        }
+      });
     }).listen(port, 'localhost', () => {
       console.log(`listening for events on http://localhost:${port}`);
     });
@@ -180,10 +209,11 @@ class TinySpeck extends EventEmitter {
    *
    * @param {string} endPoint - The method name or url
    * @param {object} payload - The JSON payload to send
+   * @param {boolean} stringify - Flag to stringify the JSON body
    * @return {Promise} A promise with the api result
    */
-  post(endPoint, payload) {
-    if (!/^http/i.test(endPoint)) {
+  post(endPoint, payload, stringify) {
+    if (!/^http/i.test(endPoint) || stringify === true) {
       
       // serialize JSON params
       if (payload.attachments)
@@ -193,12 +223,16 @@ class TinySpeck extends EventEmitter {
       payload = qs.stringify(payload);
     }
 
-    return axios({ 
+    let req = axios({ 
       url: endPoint,
       data: payload ,
       method: 'post',
       baseURL: 'https://slack.com/api/',
       headers: { 'user-agent': 'TinySpeck' }
+    });
+
+    return new Promise((resolve, reject) => {
+      req.then(r => resolve(r.data)).catch(reject);
     });
   }
 }
