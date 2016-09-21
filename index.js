@@ -197,7 +197,7 @@ class TinySpeck extends EventEmitter {
           res.end();
         }
       });
-    }).listen(port, 'localhost', () => {
+    }).listen(port, () => {
       console.log(`listening for events on http://localhost:${port}`);
     });
   }
