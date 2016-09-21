@@ -106,7 +106,7 @@ class TinySpeck extends EventEmitter {
     if (trigger_word) this.emit(trigger_word, message);
 
     // notify message button triggered by callback_id
-    if (payload) this.emit(payload.callback_id, message);
+    if (payload) this.emit(payload.callback_id, payload);
 
     return message;
   }
