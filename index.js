@@ -16,7 +16,6 @@ class TinySpeck extends EventEmitter {
    */
   constructor(defaults) {
     super();
-    this.cache = {};
 
     // message defaults
     this.defaults = defaults || {};
@@ -74,7 +73,8 @@ class TinySpeck extends EventEmitter {
     }
     
     // message button payloads are JSON strings
-    if (message.payload) message.payload = JSON.parse(message.payload);
+    if (typeof message.payload === 'string') 
+      message.payload = JSON.parse(message.payload);
     
     return message;
   }
@@ -134,7 +134,6 @@ class TinySpeck extends EventEmitter {
    */
   rtm(options) {
     return this.send('rtm.start', options).then(res => {
-      this.cache = res.self;
       let ws = new WebSocket(res.url);
       ws.on('message', this.digest.bind(this));
       ws.on('close', () => this.ws = null);
