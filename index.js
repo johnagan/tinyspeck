@@ -1,39 +1,45 @@
-"use strict";
+"use strict"
 
 const url = require('url'),
-      http = require('http'),
-      axios = require('axios'),
-      WebSocket = require('ws'),
-      qs = require('querystring'),
-      EventEmitter = require('events');
-      
+  http = require('http'),
+  axios = require('axios'),
+  WebSocket = require('ws'),
+  qs = require('querystring'),
+  EventEmitter = require('events')
+
+const client = axios.create({
+  baseURL: 'https://slack.com/api/',
+  headers: { 'user-agent': 'TinySpeck' }
+})
+
 
 class TinySpeck extends EventEmitter {
+
   /**
    * Contructor
    *
-   * @param {Object} defaults - The default config for the instance
+   * @param {object} defaults - The default config for the instance
    */
   constructor(defaults) {
-    super();
+    super()
 
     // message defaults
-    this.defaults = defaults || {};
-    
+    this.defaults = defaults || {}
+
     // loggers
-    this.on('error', console.error);
+    this.on('error', console.error)
   }
 
 
   /**
    * Create an instance of the TinySpeck adapter
    *
-   * @param {Object} defaults - The default config for the instance
+   * @param {object} defaults - The default config for the instance
    * @return {TinySpeck} A new instance of the TinySpeck adapter
    */
   instance(defaults) {
-    let options = Object.assign({}, this.defaults, defaults);
-    return new this.constructor(options);
+    let options = Object.assign({}, this.defaults, defaults)
+    return new this.constructor(options)
   }
 
 
@@ -45,18 +51,29 @@ class TinySpeck extends EventEmitter {
    * @return {Promise} A promise with the API result
    */
   send(...args) {
-    let endPoint = 'chat.postMessage'; // default action is post message
+    // use defaults when available
+    let message = Object.assign({}, this.defaults, ...args)
+
+    // default action is post message
+    let endPoint = 'chat.postMessage'
 
     // if an endpoint was passed in, use it
-    if (typeof args[0] === 'string') endPoint = args.shift();
+    if (typeof args[0] === 'string') endPoint = args.shift()
 
-    // use defaults when available
-    let message = Object.assign({}, this.defaults, ...args);  
+    // call update if ts included and no endpoint
+    else if (message.ts) endPoint = 'chat.update'
 
-    // call update if ts included
-    if (message.ts && endPoint === 'chat.postMessage') endPoint = 'chat.update';
+    // convert content-type if webapi endpoint
+    if (!endPoint.match(/^http/i)) {
+      // serialize JSON params
+      if (message.attachments)
+        message.attachments = JSON.stringify(message.attachments)
 
-    return this.post(endPoint, message);
+      // serialize JSON for POST
+      message = qs.stringify(message)
+    }
+
+    return client.post(endPoint, message).then(r => r.data)
   }
 
 
@@ -64,51 +81,52 @@ class TinySpeck extends EventEmitter {
    * Parse a Slack message
    *
    * @param {object|string} message - The incoming Slack message
-   * @return {Message} The parsed message
+   * @return {object} The parsed message
    */
   parse(message) {
     if (typeof message === 'string') {
-      try { message = JSON.parse(message); }      // JSON string
-      catch(e) { message = qs.parse(message); }   // QueryString
+      try { message = JSON.parse(message) } // JSON string
+      catch (e) { message = qs.parse(message) } // QueryString
     }
-    
-    // message button payloads are JSON strings
-    if (typeof message.payload === 'string') 
-      message.payload = JSON.parse(message.payload);
-    
-    return message;
+
+    // interactive message payloads are JSON strings
+    if (typeof message.payload === 'string')
+      message = JSON.parse(message.payload)
+
+    return message
   }
 
 
   /**
-   * Digest a Slack message and process events
+   * Notify a Slack message event
    *
    * @param {object|string} message - The incoming Slack message
    * @return {Message} The parsed message
    */
-  digest(message) {
-    message = this.parse(message);
-    let {event_ts, event, command, type, trigger_word, payload} = message;
-    
-    // wildcard
-    this.emit('*', message);
+  notify(message) {
+    message = this.parse(message)
+    let { event_ts, event, command, type, trigger_word, callback_id } = message
+    let events = ['*']
 
     // notify incoming message by type
-    if (type) this.emit(type, message);
-
-    // notify slash command by command
-    if (command) this.emit(command, message);
+    if (type) events.push(type)
 
     // notify event triggered by event type
-    if (event) this.emit(event.type, message);
+    if (event) events.push('event', event.type)
+
+    // notify slash command by command
+    if (command) events.push('slash_command', command)
 
     // notify webhook triggered by trigger word
-    if (trigger_word) this.emit(trigger_word, message);
+    if (trigger_word) events.push('webhook', trigger_word)
 
     // notify message button triggered by callback_id
-    if (payload) this.emit(payload.callback_id, payload);
+    if (callback_id) events.push('interactive_message', callback_id)
 
-    return message;
+    // emit all events
+    events.forEach(name => this.emit(name, message))
+
+    return message
   }
 
 
@@ -119,10 +137,9 @@ class TinySpeck extends EventEmitter {
    * @return {TinySpeck} The TinySpeck adapter
    */
   on(...names) {
-    let callback = names.pop(); // support multiple events per callback
-    names.forEach(name => super.on(name, callback));
-
-    return this; // chaining support
+    let callback = names.pop() // support multiple events per callback
+    names.forEach(name => super.on(name, callback))
+    return this // chaining support
   }
 
 
@@ -134,106 +151,63 @@ class TinySpeck extends EventEmitter {
    */
   rtm(options) {
     return this.send('rtm.start', options).then(res => {
-      let ws = new WebSocket(res.url);
-      ws.on('message', this.digest.bind(this));
-      ws.on('close', () => this.ws = null);
-      ws.on('open', () => this.ws = ws);
-      return Promise.resolve(ws);
-    });
+      let ws = new WebSocket(res.url)
+      ws.on('message', this.notify.bind(this))
+      ws.on('close', () => this.ws = null)
+      ws.on('open', () => this.ws = ws)
+      return Promise.resolve(ws)
+    })
   }
 
 
- /**
+  /**
    * OAuth Authorization Url
    *
    * @param {object} params - The OAuth querystring params
    * @return {string} The authorization url
    */
   authorizeUrl(params) {
-    return "https://slack.com/oauth/authorize?" + qs.stringify(params);
+    return "https://slack.com/oauth/authorize?" + qs.stringify(params)
   }
 
 
- /**
-   * OAuth Token
-   *
-   * @param {object} params - The authorization params
-   * @return {promise} A Promise containing the authorization results
-   */
-  token(params) {
-    return this.post('https://slack.com/api/oauth.access', params, true)
-  }
-
-
- /**
+  /**
    * WebServer to listen for WebHooks
    *
    * @param {int} port - The port number to listen on
    * @param {string} token - Optionally prodide a token to verify
    * @return {listener} The HTTP listener
    */
-  listen(port, token) {    
-    return http.createServer((req, res) => {
-      let data = '';
-      req.on('data', chunk => data += chunk);
+  listen(port, token) {
+    let router = (req, res) => {
+      let data = ''
+      req.on('data', chunk => data += chunk)
       req.on('end', () => {
-        let message = this.parse(data);
-        
         // update the request
-        req.body = message;
-        req.url = url.parse(req.url);
-        req.params = qs.parse(req.url.query);
+        req.body = this.parse(data)
+        req.url = url.parse(req.url)
+        req.params = qs.parse(req.url.query)
 
         // new subscription challenge
-        if (message.challenge) return res.end(message.challenge);
-        
-        // digest the incoming message
-        if (!token || token === message.token) this.digest(message);
+        if (req.body.challenge) return res.end(req.body.challenge)
+
+        // notify listeners of the event
+        if (!token || token === req.body.token) this.notify(req.body)
 
         // notify route handler if available, otherwise end
-        if (this.eventNames().indexOf(req.url.pathname) !== -1) {          
-          this.emit(req.url.pathname, req, res);   
+        if (this.eventNames().indexOf(req.url.pathname) !== -1) {
+          this.emit(req.url.pathname, req, res)
         } else {
-          res.end();
+          res.end()
         }
-      });
-    }).listen(port, () => {
-      console.log(`listening for events on http://localhost:${port}`);
-    });
-  }
-
-
-  /**
-   * POST data to Slack's API
-   *
-   * @param {string} endPoint - The method name or url
-   * @param {object} payload - The JSON payload to send
-   * @param {boolean} stringify - Flag to stringify the JSON body
-   * @return {Promise} A promise with the api result
-   */
-  post(endPoint, payload, stringify) {
-    if (!/^http/i.test(endPoint) || stringify === true) {
-      
-      // serialize JSON params
-      if (payload.attachments)
-        payload.attachments = JSON.stringify(payload.attachments);
-
-      // serialize JSON for POST
-      payload = qs.stringify(payload);
+      })
     }
 
-    let req = axios({ 
-      url: endPoint,
-      data: payload ,
-      method: 'post',
-      baseURL: 'https://slack.com/api/',
-      headers: { 'user-agent': 'TinySpeck' }
-    });
-
-    return new Promise((resolve, reject) => {
-      req.then(r => resolve(r.data)).catch(reject);
-    });
+    return http.createServer(router).listen(port, () => {
+      console.log(`listening for events on http://localhost:${port}`)
+    })
   }
+
 }
 
-module.exports = new TinySpeck();
+module.exports = new TinySpeck()
