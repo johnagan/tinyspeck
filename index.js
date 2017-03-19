@@ -200,6 +200,7 @@ class TinySpeck extends EventEmitter {
 
         // notify route handler if available
         if (this.eventNames().indexOf(req.url.pathname) !== -1) {
+          res.json = data => res.end(JSON.stringify(data)) // json helper
           this.emit(req.url.pathname, req, res)
         } else {
           // notify listeners of the event
