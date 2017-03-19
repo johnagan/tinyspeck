@@ -180,24 +180,30 @@ class TinySpeck extends EventEmitter {
    */
   listen(port, token) {
     let router = (req, res) => {
-      let data = ''
-      req.on('data', chunk => data += chunk)
+      let body = []
+      req.on('data', body.push)
       req.on('end', () => {
         // update the request
+        let data = Buffer.concat(body).toString()
         req.body = this.parse(data)
         req.url = url.parse(req.url)
         req.params = qs.parse(req.url.query)
 
+        // reject unverified requests
+        if (token && token !== req.body.token) {
+          res.statusCode = 401
+          return res.end()
+        }
+
         // new subscription challenge
         if (req.body.challenge) return res.end(req.body.challenge)
 
-        // notify listeners of the event
-        if (!token || token === req.body.token) this.notify(req.body)
-
-        // notify route handler if available, otherwise end
+        // notify route handler if available
         if (this.eventNames().indexOf(req.url.pathname) !== -1) {
           this.emit(req.url.pathname, req, res)
         } else {
+          // notify listeners of the event
+          this.notify(req.body)
           res.end()
         }
       })
