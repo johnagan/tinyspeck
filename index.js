@@ -189,14 +189,14 @@ class TinySpeck extends EventEmitter {
         req.url = url.parse(req.url)
         req.params = qs.parse(req.url.query)
 
+        // new subscription challenge
+        if (req.body.challenge) return res.end(req.body.challenge)
+
         // reject unverified requests
         if (token && token !== req.body.token) {
           res.statusCode = 401
           return res.end()
         }
-
-        // new subscription challenge
-        if (req.body.challenge) return res.end(req.body.challenge)
 
         // notify route handler if available
         if (this.eventNames().indexOf(req.url.pathname) !== -1) {
