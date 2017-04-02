@@ -10,7 +10,7 @@ A lightweight adapter for node.js to interact with Slack's Web and RTM APIs.
 * [Events](#events)
 * [RTM](#rtm)
 * [WebServer](#webserver)
-* [WebSock Proxy](#proxy)
+* [WebSock Proxy](#websocket-proxy)
 
 ## Install
 ```
@@ -179,4 +179,38 @@ let proxy = slack.proxy(server, "CUSTOM_TOKEN", "custom_param")
 ```js
 const WebSocket = require('ws')
 const ws = new WebSocket('ws://yourserver.com?custom_param=CUSTOM_TOKEN');
+```
+
+### Sending Messages Over WebSockets
+Sending messages over the websocket will call the [`send method`](#calling-api-methods) and pass through your message to `chat.postMessage`.
+
+#### Client
+```js
+const WebSocket = require('ws')
+const ws = new WebSocket('ws://yourserver.com?token=qtGI5L0SXbtiQfPY53UhkSIs');
+
+let message = {
+  unfurl_links: true,
+  channel: 'C1QD223DS1',
+  token: 'xoxb-12345678900-ABCD1234567890',
+  text: "I am a test message http://slack.com",
+  attachments: [{
+    text: "And here's an attachment!"
+  }]
+}
+
+ws.send( JSON.stringify(message) )
+```
+
+### Calling Other Methods
+If you wanted to call another Slack API method, you can include the `method` property to your message object and it will all that method instead.
+
+#### Client
+```js
+let message = {
+  method: 'auth.test',
+  token: 'xoxb-12345678900-ABCD1234567890'
+}
+
+ws.send( JSON.stringify(message) )
 ```
