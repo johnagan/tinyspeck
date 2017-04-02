@@ -10,7 +10,7 @@ A lightweight adapter for node.js to interact with Slack's Web and RTM APIs.
 * [Events](#events)
 * [RTM](#rtm)
 * [WebServer](#webserver)
-* [WebSock Proxy](#websocket-proxy)
+* [WebSockets Proxy](#websocket-proxy)
 
 ## Install
 ```
