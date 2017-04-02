@@ -207,12 +207,12 @@ class TinySpeck extends EventEmitter {
   listen(port, token, enableWebSockets) {
     // http server
     let router = this.router.bind(this, token)
-    let server = http.createServer(router).listen(port, () => {
+    this.server = http.createServer(router).listen(port, () => {
       console.log(`listening for events on http://localhost:${port}`)
       if (enableWebSockets) this.proxy(server, token)
     })
 
-    return server
+    return this.server
   }
 
 
@@ -222,6 +222,7 @@ class TinySpeck extends EventEmitter {
    * @param {http.Server} server - The http server to attach to
    * @param {String} token - The token to verify websocket connections with
    * @param {String} paramName - (Optional) The param name to read the token from
+   * @return {WebSocket} The websocket connection
    */
   proxy(server, token, paramName) {
     paramName = paramName || 'token'
@@ -242,6 +243,8 @@ class TinySpeck extends EventEmitter {
       if (location.query[paramName] !== token) socket.close() // validate against token
       else socket.on('message', onMessage)
     })
+
+    return this.socket
   }
 
 
