@@ -32,8 +32,20 @@ let message = {
   }]
 }
 
-// send message to any Slack endpoint
-slack.send('chat.postMessage', message).then(data => {
+// send message defaults to calling chat.postMessage
+slack.send(message).then(data => {
+  // Success!
+})
+
+// if your message includes a value for "ts"
+// chat.update will be called instead
+message.ts = "1123412342134.23421"
+slack.send(message).then(data => {
+  // Success!
+})
+
+// or call any slack endpoint
+slack.send('auth.test', message).then(data => {
   // Success!
 })
 
