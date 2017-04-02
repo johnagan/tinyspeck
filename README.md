@@ -4,9 +4,12 @@ A lightweight adapter for node.js to interact with Slack's Web and RTM APIs.
 
 ## Usage
 * [Installation](#install)
-* [API Requests](#calling-api-methods)
+* [Sending Data](#sending-data)
+  * [Posting Messages](#posting-messages)
+  * [Updated Messages](#updating-messages)
+  * [Respond to WebHooks](#respond-to-webhooks)
+  * [Calling Other API Methods](#calling-other-api-methods)
 * [Instances](#creating-an-instance)
-* [Writing Messages](#writing-messages)
 * [Events](#events)
 * [RTM](#rtm)
 * [WebServer](#webserver)
@@ -17,8 +20,11 @@ A lightweight adapter for node.js to interact with Slack's Web and RTM APIs.
 npm i tinyspeck --save
 ```
 
-## Calling API Methods
-Access any of Slack's [API Methods](https://api.slack.com/methods) by passing in the method name.
+## Sending Data
+The TinySpeck client is a minimal wrapper around Slack's Web API Web. The default action is sending messages.
+
+### Posting Messages
+The `send` method defaults to calling [`chat.postMessage`](https://api.slack.com/methods/chat.postMessage).
 ```js
 const slack = require('tinyspeck')
 
@@ -36,23 +42,41 @@ let message = {
 slack.send(message).then(data => {
   // Success!
 })
+```
 
-// if your message includes a value for "ts"
-// chat.update will be called instead
-message.ts = "1123412342134.23421"
-slack.send(message).then(data => {
-  // Success!
-})
+### Updating Messages
+If your messages includes an `ts` property, it will call [`chat.update`](https://api.slack.com/methods/chat.update) instead.
 
-// or call any slack endpoint
-slack.send('auth.test', message).then(data => {
-  // Success!
-})
+```js
+let message = {
+  ts: "123422342134.234",
+  channel: 'C1QD223DS1',
+  token: 'xoxb-12345678900-ABCD1234567890',
+  text: "Updated Message!!"
+}
 
+instance.send(message)
+```
+
+### Respond to WebHooks
+To respond to response urls, pass the url in place of a method name.
+```js
 // respond to webhooks
 slack.send('https://hooks.slack.com/services/T0000/B000/XXXX', message)
 ```
 
+### Calling Other API Methods
+Access any of Slack's [API Methods](https://api.slack.com/methods) by passing in the method name.
+```js
+let message = {
+  token: 'xoxb-12345678900-ABCD1234567890'
+}
+
+// pass in the method name to call
+slack.send('auth.test', message).then(data => {
+  // Success!
+})
+```
 
 ## Creating an Instance
 Use to create a new instance of TinySpeck with a custom defaults
@@ -74,38 +98,6 @@ let message = {
 
 // send message to any Slack endpoint
 instance.send('chat.postMessage', message)
-```
-
-## Writing Messages
-The Send method defaults to `chat.postMessage`. If your messages includes an `ts` property, it will call `chat.update` instead.
-
-```js
-let instance = slack.instance({
-  unfurl_links: true,
-  channel: 'C1QD223DS1',
-  token: 'xoxb-12345678900-ABCD1234567890'  
-})
-
-// complex messages are allowed
-instance.send({
-  text: "I am a test message http://slack.com",
-  attachments: [{
-    text: "And here's an attachment!"
-  }]
-})
-
-// including the ts will update the message
-let orginalMsg = {
-  ts: "1234",
-  text: "I am a test message http://slack.com",
-  attachments: [{
-    text: "And here's an attachment!"
-  }]
-}
-
-instance.send(orginalMsg, { 
-  text: 'My new text!'
-})
 ```
 
 ## Events
@@ -131,11 +123,13 @@ slack.on('googlebot', '/test', 'slash_commands', message => { })
 slack.on('*', message => { })
 ```
 
+
+
 ## RTM
 Creates a connection to Slack's RTM API.
 ```js
 // options to pass to rtm.start
-slack.rtm({options}) // returns a promise
+slack.rtm({ options }) // returns a promise
 
 // basic
 slack.rtm({ token: 'xoxb-12345678900-ABCD1234567890' }).then(ws => {    
