@@ -64,7 +64,7 @@ class TinySpeck extends EventEmitter {
     let endPoint = 'chat.postMessage'
 
     // if an endpoint was passed in, use it
-    if (typeof args[0] === 'String') endPoint = args.shift()
+    if (typeof args[0] === 'string') endPoint = args.shift()
 
     // call update if ts included and no endpoint
     else if (message.ts) endPoint = 'chat.update'
@@ -90,13 +90,13 @@ class TinySpeck extends EventEmitter {
    * @return {Object} The parsed message
    */
   parse(message) {
-    if (typeof message === 'String') {
+    if (typeof message === 'string') {
       try { message = JSON.parse(message) } // JSON String
       catch (e) { message = qs.parse(message) } // QueryString
     }
 
     // interactive message payloads are JSON Strings
-    if (typeof message.payload === 'String')
+    if (typeof message.payload === 'string')
       message = JSON.parse(message.payload)
 
     return message
