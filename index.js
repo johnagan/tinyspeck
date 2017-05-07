@@ -5,7 +5,8 @@ const url = require('url'),
   axios = require('axios'),
   WebSocket = require('ws'),
   qs = require('querystring'),
-  EventEmitter = require('events')
+  EventEmitter = require('events'),
+  Payload = require('slack-payload')
 
 const client = axios.create({
   baseURL: 'https://slack.com/api/',
@@ -84,7 +85,7 @@ class TinySpeck extends EventEmitter {
 
 
   /**
-   * Parse a Slack message
+   * Parse HTTP body
    *
    * @param {Object|String} message - The incoming Slack message
    * @return {Object} The parsed message
@@ -107,32 +108,13 @@ class TinySpeck extends EventEmitter {
    * Notify a Slack message event
    *
    * @param {Object|String} message - The incoming Slack message
-   * @return {Message} The parsed message
+   * @return {Payload} The Slack Payload
    */
   notify(message) {
-    message = this.parse(message)
-    let { event_ts, event, command, type, trigger_word, callback_id } = message
-    let events = ['*']
-
-    // notify incoming message by type
-    if (type) events.push(type)
-
-    // notify event triggered by event type
-    if (event) events.push('event', event.type)
-
-    // notify slash command by command
-    if (command) events.push('slash_command', command)
-
-    // notify webhook triggered by trigger word
-    if (trigger_word) events.push('webhook', trigger_word)
-
-    // notify message button triggered by callback_id
-    if (callback_id) events.push('interactive_message', callback_id)
-
-    // emit all events
-    events.forEach(name => this.emit(name, message))
-
-    return message
+    let payload = new Payload(message)
+    let events = ['*'].concat(payload.types)
+    events.forEach(name => this.emit(name, payload))
+    return payload
   }
 
 
