@@ -263,7 +263,7 @@ class TinySpeck extends EventEmitter {
       let data = Buffer.concat(body).toString()
       req.body = this.parse(data)
       req.url = url.parse(req.url)
-      req.params = qs.parse(req.url.query)
+      req.query = qs.parse(req.url.query)
 
       // new subscription challenge
       if (req.body.challenge) return res.end(req.body.challenge)
