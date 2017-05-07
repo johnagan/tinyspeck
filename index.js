@@ -274,6 +274,12 @@ class TinySpeck extends EventEmitter {
         return res.end()
       }
 
+      // redirect helper
+      res.redirect = Location => {
+        res.writeHead(302, { Location })
+        res.end()
+      }
+
       // json helper
       res.json = data => {
         res.setHeader('Content-Type', 'application/json')
