@@ -268,28 +268,28 @@ class TinySpeck extends EventEmitter {
       // new subscription challenge
       if (req.body.challenge) return res.end(req.body.challenge)
 
-      // reject unverified requests
-      if (token && token !== req.body.token) {
-        res.statusCode = 401
-        return res.end()
-      }
-
-      // redirect helper
-      res.redirect = Location => {
-        res.writeHead(302, { Location })
-        res.end()
-      }
-
-      // json helper
-      res.json = data => {
-        res.setHeader('Content-Type', 'application/json')
-        res.end(JSON.stringify(data))
-      }
-
       // notify route handler if available
       if (this.eventNames().indexOf(req.url.pathname) !== -1) {
+        // redirect helper
+        res.redirect = Location => {
+          res.writeHead(302, { Location })
+          res.end()
+        }
+
+        // json helper
+        res.json = data => {
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify(data))
+        }
+
         super.emit(req.url.pathname, req, res)
       } else {
+        // reject unverified requests
+        if (token && token !== req.body.token) {
+          res.statusCode = 401
+          return res.end()
+        }
+
         // notify listeners of the event
         this.notify(req.body)
         res.end()
