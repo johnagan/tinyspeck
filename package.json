@@ -6,7 +6,7 @@
   "author": "John Agan <jagan@slack-corp.com>",
   "license": "MIT",
   "scripts": {
-    "test": "env $(cat .testenv | xargs) mocha"
+    "test": "mocha"
   },
   "engines": {
     "node": ">=6"
