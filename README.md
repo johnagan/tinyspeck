@@ -111,7 +111,7 @@ slack.on('event name', [... 'event name',] callback)
 slack.on('/test', message => { })
 
 // handle all slash commands
-slack.on('slash_commands', message => { })
+slack.on('slash_command', message => { })
 
 // handle the outgoing webhooks trigger word "googlebot"
 slack.on('googlebot', message => { })
