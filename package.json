@@ -1,7 +1,7 @@
 {
   "name": "tinyspeck",
   "description": "A lightweight adapter for node.js to interact with Slack's Web and RTM APIs",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "main": "index.js",
   "author": "John Agan <jagan@slack-corp.com>",
   "license": "MIT",
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "axios": "^0.13.1",
-    "slack-payload": "^1.0.9",
+    "slack-payload": "^1.0.10",
     "ws": "^1.1.1"
   },
   "devDependencies": {
