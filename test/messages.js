@@ -1,11 +1,10 @@
-const {TOKEN, CHANNEL} = process.env,
-      {assert} = require('chai'),
-      ts = require('../index');
+const { TOKEN, CHANNEL } = process.env, { assert } = require('chai'),
+  ts = require('../index');
 
 
 describe('RTM', () => {
   let text = "TESTING";
-  let test = ts.instance({ token: TOKEN, text: text, channel: CHANNEL  });
+  let test = ts.instance({ token: TOKEN, text: text, channel: CHANNEL });
 
   describe('rtm.start', () => {
     it('should create an RTM connection', done => {
@@ -14,7 +13,7 @@ describe('RTM', () => {
   });
 
   describe('events', () => {
-    beforeEach(() => test.removeAllListeners() );
+    beforeEach(() => test.removeAllListeners());
 
     it('should respond to the hello event', done => {
       test.on('hello', msg => done());
@@ -27,12 +26,12 @@ describe('RTM', () => {
     it('should respond to the message event', done => {
       test.on('*', console.log);
       test.on('message', msg => done());
-      test.write();      
+      test.send();
     });
 
     it('should respond to any event', done => {
       test.on('*', msg => done());
-      test.write();
+      test.send();
     });
   });
 });
