@@ -65,7 +65,7 @@ class TinySpeck extends EventEmitter {
     if (typeof args[0] === 'string') endPoint = args.shift()
 
     // use defaults when available
-    const message = Object.assign({}, this.defaults, ...args)
+    let message = Object.assign({}, this.defaults, ...args)
 
     // call update if ts included and no endpoint
     if (endPoint === 'chat.PostMessage' && message.ts) {
