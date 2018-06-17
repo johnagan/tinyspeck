@@ -58,17 +58,19 @@ class TinySpeck extends EventEmitter {
    * @return {Promise} A promise with the API result
    */
   send(...args) {
-    // use defaults when available
-    let message = Object.assign({}, this.defaults, ...args)
-
     // default action is post message
     let endPoint = 'chat.postMessage'
 
     // if an endpoint was passed in, use it
     if (typeof args[0] === 'string') endPoint = args.shift()
 
+    // use defaults when available
+    const message = Object.assign({}, this.defaults, ...args)
+
     // call update if ts included and no endpoint
-    else if (message.ts) endPoint = 'chat.update'
+    if (endPoint === 'chat.PostMessage' && message.ts) {
+      endPoint = 'chat.update'
+    }
 
     // convert content-type if webapi endpoint
     if (!endPoint.match(/^http/i)) {
